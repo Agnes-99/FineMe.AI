@@ -1,0 +1,9 @@
+# Ignore virtual environment folder
+.venv/
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+
+# Ignore uploads (optional — only if you don’t want to commit uploaded images)
+static/uploads/
