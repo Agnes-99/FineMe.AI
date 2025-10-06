@@ -1,75 +1,104 @@
 import os
-import cv2
+import sqlite3
 import numpy as np
+import face_recognition  
+import pickle
 from flask import Flask, render_template, request, url_for
 
 app = Flask(__name__)
-
-# Set uploads folder inside static
 UPLOAD_FOLDER = os.path.join("static", "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-# Load Haar Cascade for face detection
-face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
-if face_cascade.empty():
-    raise Exception("Failed to load Haar Cascade xml file")
+DB_PATH = "faces.db"
+
+# Initialize DB
+def init_db():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS faces (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT,
+                    image_path TEXT,
+                    encoding BLOB,
+                    category TEXT)''')
+    conn.commit()
+    conn.close()
 
 
-@app.route("/", methods=["GET", "POST"])
-def index():
-    processed_image = None
-    face_count = 0
-    confidence = 0
-    original_image = None
+init_db()
 
-    if request.method == "POST":
-        if "file" not in request.files:
-            return "No file uploaded", 400
 
-        file = request.files["file"]
-        if file.filename == "":
-            return "Empty file name", 400
+# Save face data
+def save_face(name, image_path, encoding, category):
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("INSERT INTO faces (name, image_path, encoding, category) VALUES (?, ?, ?, ?)",
+              (name, image_path, encoding.dumps(), category))
+    conn.commit()
+    conn.close()
 
-        filepath = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
-        file.save(filepath)
-        original_image = url_for('static', filename=f"uploads/{file.filename}")
 
-        # Read the image
-        img = cv2.imread(filepath)
-        if img is None:
-            return "Failed to load image", 400
+# Load stored faces
+def load_faces(category=None):
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    if category:
+        c.execute("SELECT name, image_path, encoding FROM faces WHERE category=?", (category,))
+    else:
+        c.execute("SELECT name, image_path, encoding FROM faces")
+    data = c.fetchall()
+    conn.close()
+    return [(name, path, pickle.loads(enc)) for name, path, enc in data]
 
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-        # Detect faces
-        faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5)
-        face_count = len(faces)
+@app.route("/")
+def home():
+    return render_template("index.html")
 
-        # Draw rectangles around faces
-        for (x, y, w, h) in faces:
-            cv2.rectangle(img, (x, y), (x+w, y+h), (0, 255, 0), 2)
 
-        # Simple confidence: average face area
-        if face_count > 0:
-            confidences = [w*h for (x, y, w, h) in faces]
-            confidence = int(sum(confidences) / len(confidences) / (img.shape[0] * img.shape[1]) * 100)
+@app.route("/upload_missing", methods=["POST"])
+def upload_missing():
+    file = request.files["file"]
+    name = request.form.get("name", "Unknown")
+    filepath = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
+    file.save(filepath)
 
-        # Save result
-        result_filename = "result_" + file.filename
-        output_path = os.path.join(app.config["UPLOAD_FOLDER"], result_filename)
-        cv2.imwrite(output_path, img)
+    img = face_recognition.load_image_file(filepath)
+    encodings = face_recognition.face_encodings(img)
+    if not encodings:
+        return "No face detected. Try another image."
 
-        processed_image = url_for('static', filename=f"uploads/{result_filename}")
+    save_face(name, filepath, np.array(encodings[0]), "missing")
+    return f"✅ {name} has been added to the missing persons database."
 
-    return render_template(
-        "index.html",
-        processed_image=processed_image,
-        face_count=face_count,
-        confidence=confidence,
-        original_image=original_image
-    )
+
+@app.route("/upload_found", methods=["POST"])
+def upload_found():
+    file = request.files["file"]
+    filepath = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
+    file.save(filepath)
+
+    unknown_img = face_recognition.load_image_file(filepath)
+    unknown_encs = face_recognition.face_encodings(unknown_img)
+    if not unknown_encs:
+        return "No face detected."
+
+    unknown_enc = unknown_encs[0]
+    known_faces = load_faces(category="missing")
+
+    matches = []
+    for name, path, known_enc in known_faces:
+        distance = face_recognition.face_distance([known_enc], unknown_enc)[0]
+        if distance < 0.6:  # Lower is stricter
+          confidence = round((1 - distance) * 100, 2)
+          matches.append((name, path, confidence))
+
+    if matches:
+        return render_template("matches.html", matches=matches)
+    else:
+        return "❌ No matches found."
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(debug=True)
