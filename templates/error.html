@@ -1,0 +1,24 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ title }}</title>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+<script>
+Swal.fire({
+  icon: 'warning',
+  title: '{{ title }}',
+  text: '{{ message }}',
+  confirmButtonText: 'Okay, got it!',
+  confirmButtonColor: '#3085d6',
+  backdrop: `rgba(0,0,0,0.6)`
+}).then(() => {
+  window.location.href = '/';
+});
+</script>
+</body>
+</html>

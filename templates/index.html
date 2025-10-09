@@ -1,29 +1,285 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>FindMe.AI </title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>FindMe.AI — Ultra Modern Demo</title>
+<style>
+:root{
+  --bg-1:#0f1724;
+  --bg-2:#001f3f;
+  --accent1:#00f5a0;
+  --accent2:#7b61ff;
+  --glass: rgba(255,255,255,0.06);
+  --muted: rgba(255,255,255,0.65);
+  --card-radius:24px;
+  --shadow-glow: rgba(123,97,255,0.4);
+}
+
+html, body {
+  margin:0; padding:0; height:100%; font-family: 'Inter', sans-serif;
+  background: radial-gradient(1200px 700px at 10% 10%, rgba(123,97,255,0.12), transparent 6%),
+              radial-gradient(1000px 600px at 90% 90%, rgba(0,245,160,0.06), transparent 6%),
+              linear-gradient(135deg,var(--bg-1),var(--bg-2));
+  overflow-x:hidden;
+  scroll-behavior: smooth;
+}
+
+#particles {
+  position: fixed; inset:0; z-index:0; pointer-events:none; filter: blur(6px) saturate(120%);
+}
+
+.stage {
+  position: relative; z-index:2; min-height:100vh;
+  display:flex; flex-direction:column; align-items:center; padding:30px;
+}
+
+.card {
+  width: min(900px, 95%);
+  border-radius: var(--card-radius);
+  background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01));
+  box-shadow: 0 15px 40px rgba(2,6,23,0.8), 0 2px 8px rgba(0,0,0,0.5), 0 0 20px var(--shadow-glow);
+  backdrop-filter: blur(16px) saturate(120%);
+  padding: 25px;
+  overflow: hidden;
+  transform-style: preserve-3d;
+  transition: transform 300ms ease;
+  border: 1px solid rgba(255,255,255,0.05);
+  animation: fadeInUp 1s ease forwards;
+}
+
+@keyframes fadeInUp {
+  from { opacity:0; transform: translateY(20px); }
+  to { opacity:1; transform: translateY(0); }
+}
+
+.brand { display:flex; align-items:center; gap:16px; margin-bottom:12px; }
+.logo {
+  width:64px; height:64px; border-radius:16px;
+  background: conic-gradient(from 180deg at 50% 50%, var(--accent2), #2de0c6, var(--accent1));
+  box-shadow: 0 8px 20px var(--shadow-glow), inset 0 -8px 20px rgba(0,0,0,0.2);
+  display:flex; align-items:center; justify-content:center;
+  font-weight:800; color:#032; font-size:22px; text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+}
+h1 { margin:0; font-size:24px; letter-spacing:0.4px; color:#fff; }
+.subtitle { color:var(--muted); font-size:14px; margin-top:4px; }
+
+.grid { display:grid; grid-template-columns: 1fr 1fr; gap:20px; align-items:start; }
+@media (max-width:900px){ .grid{ grid-template-columns: 1fr; } }
+
+.upload-area, .info {
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+  padding:20px; border-radius:16px; border:1px solid rgba(255,255,255,0.05);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  transition: transform 200ms ease;
+}
+.upload-area:hover, .info:hover { transform: translateY(-4px); }
+
+.drop {
+  border-radius:16px; padding:20px;
+  display:flex; gap:12px; align-items:center; justify-content:center; flex-direction:column;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  transition: all 200ms ease;
+  border: 2px dashed rgba(255,255,255,0.1);
+  min-height:250px; text-align:center; cursor:pointer;
+  position:relative; overflow:hidden;
+}
+.drop.hover { border-color: var(--accent1); transform: translateY(-6px) scale(1.02); }
+.hint { color:var(--muted); font-size:14px; }
+.file-preview img{ width:100%; border-radius:12px; display:block; box-shadow:0 6px 18px rgba(0,0,0,0.5); }
+
+.controls { display:flex; gap:12px; margin-top:16px; flex-wrap:wrap; align-items:center; justify-content:center; }
+.btn {
+  background: linear-gradient(90deg, var(--accent1), var(--accent2));
+  border:none; color:#042; padding:12px 20px; border-radius:14px; font-weight:700; cursor:pointer;
+  box-shadow: 0 8px 26px rgba(123,97,255,0.2);
+  transition: all 200ms ease;
+}
+.btn:hover { transform: scale(1.05); }
+.btn.secondary {
+  background:transparent; border:1px solid rgba(255,255,255,0.06); color:var(--muted);
+}
+.btn:active{ transform: translateY(2px) }
+
+.info { display:flex; flex-direction:column; gap:16px; }
+.stat {
+  display:flex; justify-content:space-between; align-items:center; padding:12px; border-radius:12px;
+  background: rgba(255,255,255,0.02);
+}
+.small { color:var(--muted); font-size:13px; }
+
+.progress { height:12px; background: rgba(255,255,255,0.04); border-radius:999px; overflow:hidden; margin-top:8px; }
+.progress > i { display:block; height:100%; width:0%; background: linear-gradient(90deg, #7b61ff, #00f5a0); transition: width 700ms ease; }
+
+.footer {
+  margin-top:14px; font-size:12px; color:var(--muted); display:flex; align-items:center; justify-content:center; gap:8px;
+}
+.pill { padding:6px 10px; border-radius:999px; background: rgba(255,255,255,0.05); color:var(--muted); font-size:12px; }
+</style>
 </head>
-<body class="bg-light">
-<div class="container py-5">
-    <h1 class="text-center mb-4">FindMe.AI MVP</h1>
-    
-    <div class="card p-4 shadow mb-4">
-        <h5>Add Missing Person</h5>
-        <form action="/upload_missing" method="POST" enctype="multipart/form-data">
-            <input type="text" name="name" class="form-control mb-2" placeholder="Name" required>
-            <input type="file" name="file" class="form-control mb-2" required>
-            <button class="btn btn-primary">Upload Missing Person</button>
-        </form>
+<body>
+<canvas id="particles"></canvas>
+<div class="stage">
+  <div class="card" id="card">
+    <div class="brand">
+      <div class="logo">FM</div>
+      <div style="flex:1;">
+        <h1>FindMe.AI</h1>
+        <div class="subtitle">Ultra modern • Search & Add Missing Persons</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:12px;color:var(--muted)">Demo mode</div>
+        <div style="font-weight:700; font-size:12px; color: #cfefff">v2.0</div>
+      </div>
     </div>
 
-    <div class="card p-4 shadow">
-        <h5>Upload Found Person</h5>
-        <form action="/upload_found" method="POST" enctype="multipart/form-data">
-            <input type="file" name="file" class="form-control mb-2" required>
-            <button class="btn btn-success">Upload Found Person</button>
-        </form>
+    <div class="grid">
+      <div class="upload-area">
+        <div id="drop" class="drop">
+          <div class="hint">📸 Tap or drop a photo — portrait/selfie/CCTV crop</div>
+          <div class="small">Public images for demo</div>
+          <div id="preview" style="display:none; text-align:center;">
+            <div class="file-preview" id="previewBox"></div>
+            <div style="margin-top:10px" id="filename" class="small"></div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <label class="btn" id="chooseBtn">Choose Image</label>
+          <button class="btn secondary" id="twitterTip">🔎 Twitter Search</button>
+          <button class="btn secondary" id="databaseTip">📂 Database Search</button>
+          <button class="btn" id="goBtn">🚀 Search</button>
+        </div>
+      </div>
+
+      <div class="info">
+        <div class="stat">
+          <div>Last Search</div>
+          <div class="small" id="lastSearch">—</div>
+        </div>
+        <div class="stat">
+          <div>Twitter Requests</div>
+          <div id="reqCount">0</div>
+        </div>
+        <div>
+          <div class="small">Search Progress</div>
+          <div class="progress"><i id="progressBar"></i></div>
+          <div id="progressText" class="small">Idle</div>
+        </div>
+        <div class="footer">
+          <div class="pill">POC • Ethics in mind</div>
+        </div>
+      </div>
     </div>
+
+    <div class="upload-area" style="margin-top:20px;">
+      <form id="addMissingForm" method="POST" enctype="multipart/form-data" action="/upload_missing">
+        <label style="font-weight:700;">Add Missing Person</label>
+        <input type="text" name="name" placeholder="Name" style="width:100%; padding:10px; margin-top:8px; border-radius:8px; border:none;">
+        <input type="file" name="file" accept="image/*" style="margin-top:8px;">
+        <button type="submit" class="btn" style="margin-top:10px; width:100%;">➕ Add Person</button>
+      </form>
+    </div>
+  </div>
 </div>
+
+<script>
+const canvas = document.getElementById('particles');
+const ctx = canvas.getContext('2d');
+let w = canvas.width = innerWidth;
+let h = canvas.height = innerHeight;
+const particles = [];
+const count = Math.round((w*h)/90000);
+for(let i=0;i<count;i++){
+  particles.push({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-0.5)*0.2,vy:(Math.random()-0.5)*0.2,r:Math.random()*2+0.8,a:Math.random()*0.6+0.12});
+}
+function frame(){
+  ctx.clearRect(0,0,w,h);
+  for(const p of particles){
+    p.x+=p.vx;p.y+=p.vy;
+    if(p.x<-10)p.x=w+10;if(p.x>w+10)p.x=-10;if(p.y<-10)p.y=h+10;if(p.y>h+10)p.y=-10;
+    ctx.beginPath();
+    ctx.fillStyle='rgba(255,255,255,'+(p.a*0.6)+')';
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();
+  }
+  requestAnimationFrame(frame);
+}
+frame();
+addEventListener('resize',()=>{w=canvas.width=innerWidth;h=canvas.height=innerHeight;});
+
+const drop = document.getElementById('drop');
+const fileInput = document.createElement('input');
+fileInput.type="file";fileInput.accept="image/*";
+const preview = document.getElementById('preview');
+const previewBox = document.getElementById('previewBox');
+const filename = document.getElementById('filename');
+const chooseBtn = document.getElementById('chooseBtn');
+const goBtn = document.getElementById('goBtn');
+const twitterTip = document.getElementById('twitterTip');
+const databaseTip = document.getElementById('databaseTip');
+const progressBar = document.getElementById('progressBar');
+const progressText = document.getElementById('progressText');
+const reqCount = document.getElementById('reqCount');
+const lastSearch = document.getElementById('lastSearch');
+let currentFile = null;
+
+function showPreview(file){
+  const url = URL.createObjectURL(file);
+  previewBox.innerHTML=`<img src="${url}" alt="preview">`;
+  filename.textContent=file.name;
+  preview.style.display='block';
+  currentFile=file;
+}
+
+drop.addEventListener('click',()=>fileInput.click());
+drop.addEventListener('dragover',(e)=>{e.preventDefault();drop.classList.add('hover');});
+drop.addEventListener('dragleave',()=>drop.classList.remove('hover'));
+drop.addEventListener('drop',(e)=>{e.preventDefault();drop.classList.remove('hover');const f=e.dataTransfer.files[0];if(f){fileInput.files=e.dataTransfer.files;showPreview(f);}});
+
+fileInput.addEventListener('change',(e)=>{const f=e.target.files[0];if(f)showPreview(f);});
+chooseBtn.addEventListener('click',()=>fileInput.click());
+
+function setProgress(p,txt){progressBar.style.width=p+'%';progressText.textContent=txt||'';}
+function confettiBurst(){
+  const colors=['#7b61ff','#00f5a0','#ff7ab6','#ffd166'];
+  for(let i=0;i<30;i++){
+    const el=document.createElement('div');
+    document.body.appendChild(el);
+    el.style.position='fixed';
+    el.style.width='6px';el.style.height='6px';
+    el.style.background=colors[Math.floor(Math.random()*colors.length)];
+    el.style.left=Math.random()*window.innerWidth+'px';
+    el.style.top=Math.random()*window.innerHeight+'px';
+    el.style.borderRadius='50%';el.style.opacity='1';
+    const anim=setInterval(()=>{
+      el.style.top=parseFloat(el.style.top)+Math.random()*4+'px';
+      el.style.opacity=parseFloat(el.style.opacity)-0.05;
+      if(parseFloat(el.style.opacity)<=0){clearInterval(anim);el.remove();}
+    },30);
+  }
+}
+
+function sendFileToBackend(url){
+  if(!currentFile){alert("Upload a file first!"); return;}
+  setProgress(20,"Uploading...");
+  lastSearch.textContent = url.includes("database")?"Database Search":"Twitter Search";
+  const formData = new FormData();
+  formData.append("file", currentFile);
+  fetch(url,{method:"POST",body:formData})
+    .then(res=>res.text())
+    .then(data=>{
+      setProgress(100,"Done");
+      reqCount.textContent=parseInt(reqCount.textContent)+1;
+      document.open();
+      document.write(data);
+      document.close();
+    })
+    .catch(err=>{console.error(err);setProgress(0,"Error");});
+}
+
+goBtn.addEventListener('click',()=>sendFileToBackend("/upload_found"));
+twitterTip.addEventListener('click',()=>sendFileToBackend("/upload_found"));
+databaseTip.addEventListener('click',()=>sendFileToBackend("/search_database"));
+</script>
 </body>
 </html>
