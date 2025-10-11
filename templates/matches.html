@@ -42,6 +42,22 @@
             font-weight: 600;
             color: #00f5a0;
         }
+        .source-badge {
+            font-size: 12px;
+            margin-bottom: 6px;
+        }
+        .badge-database {
+            background-color: #7b61ff;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 999px;
+        }
+        .badge-social {
+            background-color: #1da1f2;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 999px;
+        }
         .no-match {
             font-size: 18px;
             color: #ccc;
@@ -52,23 +68,57 @@
             padding-top: 50px;
             padding-bottom: 50px;
         }
+        .back-home-btn {
+    background: linear-gradient(135deg, #00f5a0, #007f5f);
+    color: white;
+    font-weight: 600;
+    padding: 10px 25px;
+    border-radius: 12px;
+    text-decoration: none;
+    box-shadow: 0 6px 20px rgba(0, 245, 160, 0.4);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.back-home-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0, 245, 160, 0.6);
+    text-decoration: none;
+    color: white;
+}
+
+
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 class="text-center">🔍 FindMe.AI — Match Results</h1>
+        <h1 class="text-center"> FindMe.AI <br> Match Results</h1>
         <div class="row justify-content-center">
+            <div class="text-center mt-4">
+            <a href="{{ url_for('index') }}" class="btn back-home-btn">🏠 Back to Home</a>
+            </div>
             {% if matches %}
                 {% for match in matches %}
                     <div class="col-md-4 col-sm-6">
                         <div class="match-card">
-                            {% if match.image_url %}
-                                <img src="{{ match.image_url }}" class="match-img" alt="Match Image" />
+                            {% if match.image_url and match.source == "Social Media" %}
+                                <a href="{{ match.image_url }}" target="_blank">
+                                    <img src="{{ match.image_url }}" class="match-img" alt="Match Image" />
+                                </a>
                             {% elif match.file_path %}
                                 <img src="{{ url_for('static', filename='uploads/' ~ match.file_path) }}" class="match-img" alt="Match Image" />
                             {% endif %}
+
                             <div><strong>{{ match.name or "Unknown" }}</strong></div>
-                            <div class="confidence">Confidence: {{ match.confidence }}%</div>
+
+                            {% if match.source %}
+                                <div class="source-badge {% if match.source == 'Database' %}badge-database{% else %}badge-social{% endif %}">
+                                    {{ match.source }}
+                                </div>
+                            {% endif %}
+
+                            <div class="confidence">
+                                Confidence: {{ match.confidence if match.confidence is not none else "N/A" }}%
+                            </div>
                         </div>
                     </div>
                 {% endfor %}

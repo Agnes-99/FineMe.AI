@@ -115,6 +115,15 @@ h1 { margin:0; font-size:24px; letter-spacing:0.4px; color:#fff; }
   margin-top:14px; font-size:12px; color:var(--muted); display:flex; align-items:center; justify-content:center; gap:8px;
 }
 .pill { padding:6px 10px; border-radius:999px; background: rgba(255,255,255,0.05); color:var(--muted); font-size:12px; }
+
+.badge-twitter {
+  background: #1da1f2;
+  color: #fff;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 999px;
+}
+
 </style>
 </head>
 <body>
@@ -137,7 +146,7 @@ h1 { margin:0; font-size:24px; letter-spacing:0.4px; color:#fff; }
       <div class="upload-area">
         <div id="drop" class="drop">
           <div class="hint">📸 Tap or drop a photo — portrait/selfie/CCTV crop</div>
-          <div class="small">Public images for demo</div>
+          <div class="small">Uploads are scanned against database & social media</div>
           <div id="preview" style="display:none; text-align:center;">
             <div class="file-preview" id="previewBox"></div>
             <div style="margin-top:10px" id="filename" class="small"></div>
@@ -146,9 +155,9 @@ h1 { margin:0; font-size:24px; letter-spacing:0.4px; color:#fff; }
 
         <div class="controls">
           <label class="btn" id="chooseBtn">Choose Image</label>
-          <button class="btn secondary" id="twitterTip">🔎 Twitter Search</button>
-          <button class="btn secondary" id="databaseTip">📂 Database Search</button>
-          <button class="btn" id="goBtn">🚀 Search</button>
+          <button class="btn secondary" id="twitterTip">Social Media Search</button>
+          <button class="btn secondary" id="databaseTip">Database Search</button>
+          <button class="btn" id="goBtn">Find Matches</button>
         </div>
       </div>
 
@@ -262,7 +271,7 @@ function confettiBurst(){
 function sendFileToBackend(url){
   if(!currentFile){alert("Upload a file first!"); return;}
   setProgress(20,"Uploading...");
-  lastSearch.textContent = url.includes("database")?"Database Search":"Twitter Search";
+  lastSearch.textContent = url.includes("database")?"Database Search":"Social Media Search";
   const formData = new FormData();
   formData.append("file", currentFile);
   fetch(url,{method:"POST",body:formData})
