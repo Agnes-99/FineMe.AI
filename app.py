@@ -119,7 +119,7 @@ def upload_found():
 
     matches = []
 
-    # 1️⃣ Search database matches via Rekognition
+    
     db_matches = search_face(found_image_path)
     for m in db_matches:
         db_entry = database.get_missing_person_by_name(m['name'])
